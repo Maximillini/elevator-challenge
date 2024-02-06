@@ -1,3 +1,5 @@
+@use './_colors.scss' as *;
+
 .container {
   padding: 0 2rem;
 }
@@ -108,13 +110,13 @@
   margin-left: 0.5rem;
 }
 
+.building-container {
+  border: 1px solid $black;
+}
+
 @media (max-width: 600px) {
   .grid {
     width: 100%;
     flex-direction: column;
   }
-}
-
-.buildingContainer {
-  border: 1px solid black;
 }
