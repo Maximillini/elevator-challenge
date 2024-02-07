@@ -1,0 +1,23 @@
+@use '../../styles/colors' as *;
+
+.elevatorContainer {
+  display: flex;
+  place-content: center;
+  align-items: stretch;
+  height: 80vh;
+}
+
+.elevatorDisplay {
+  background-color: $black;
+  border: 1px solid $white;
+  border-radius: 5px;
+  flex: 0 1 25%;
+  height: 30%;
+  margin: 0 10px;
+  padding: 20px;
+}
+
+.elevator {
+  border: 1px solid $white;
+  flex: 0 0 40%;
+}
