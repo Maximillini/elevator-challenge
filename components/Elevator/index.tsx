@@ -1,25 +1,154 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getRandStartAndDestination, getTenantDirection } from '../../helpers/elevator-helpers'
+import { PossibleFloors, Direction, Call } from '../../types/elevator'
 import styles from './Elevator.module.scss'
 
 export const Elevator = () => {
-  const [doorsOpen, setdoorsOpen] = useState(false)
-  const [currentFloor, setCurrentFloor] = useState(1)
+  const [doorsOpen, setDoorsOpen] = useState(true)
+  const [currentFloor, setCurrentFloor] = useState<PossibleFloors>(1)
   const [moving, setMoving] = useState(false)
+  const [direction, setDirection] = useState<Direction | null>(null)
+  const [pendingCalls, setPendingCalls] = useState<Call[]>([])
+  const [elevatorPassengers, setElevatorPassengers] = useState<Call[]>([])
+  const [emergencyStop, setEmergencyStop] = useState(false)
+
+  useEffect(() => {
+    if (emergencyStop) {
+      return () => {}
+    }
+  
+    const nextCall = pendingCalls[0]
+  
+    if (!nextCall || moving) return
+  
+    const direction = nextCall.currentFloor > currentFloor ? Direction.UP : Direction.DOWN;
+  
+    // Set the direction state before moving the elevator
+    setDirection(direction)
+  
+    const moveOneFloor = () => {
+      // Ensure the elevator is not already moving
+      if (moving) return
+    
+      // Calculate the direction based on the next call's starting floor
+      const direction = nextCall.currentFloor > currentFloor ? Direction.UP : Direction.DOWN;
+    
+      // Set the direction state
+      setDirection(direction)
+    
+      // Move the elevator one floor at a time based on the direction
+      const interval = setInterval(() => {
+        if (direction === Direction.UP && currentFloor < 20) {
+          setCurrentFloor(prevFloor => prevFloor + 1 as PossibleFloors)
+        } else if (direction === Direction.DOWN && currentFloor > 1) {
+          setCurrentFloor(prevFloor => prevFloor - 1 as PossibleFloors)
+        } else {
+          // Stop the elevator when it reaches the destination floor
+          clearInterval(interval)
+          setMoving(false)
+          setDoorsOpen(true)
+          return
+        }
+    
+        const reachedDestination = currentFloor === nextCall.destination
+        if (reachedDestination) {
+          // Remove the completed call and stop the elevator
+          setPendingCalls(prevCalls => prevCalls.filter(c => c !== nextCall))
+          clearInterval(interval)
+          setMoving(false)
+          setDoorsOpen(true)
+          return
+        }
+    
+        // Check for passengers to pick up
+        const passengersToPickUp = pendingCalls.filter(call => {
+          if (direction === Direction.UP) {
+            return call.currentFloor === currentFloor && call.direction === Direction.UP;
+          }
+          if (direction === Direction.DOWN) {
+            return call.currentFloor === currentFloor && call.direction === Direction.DOWN;
+          }
+        })
+    
+        if (passengersToPickUp.length > 0) {
+          setPendingCalls(prevCalls => prevCalls.filter(call => !passengersToPickUp.includes(call)))
+          setElevatorPassengers(prevPassengers => [...prevPassengers, ...passengersToPickUp])
+        }
+      }, 2000)
+    }
+  
+    moveOneFloor()
+  
+  }, [moving, doorsOpen, pendingCalls, currentFloor, direction, emergencyStop])
+
+  useEffect(() => {
+    const getTenantCall = () => {
+      const [start, destination] = getRandStartAndDestination()
+      const randomDirection = getTenantDirection(start, destination)
+      
+      // Prevent requesting elevator to the same floor
+      if (start === destination) return
+    
+      if (pendingCalls.some(call => call.currentFloor === start && call.direction === randomDirection)) return
+    
+      if (pendingCalls.length > 1) return
+      setPendingCalls(prevCalls => [...prevCalls, { currentFloor: start, direction: randomDirection, destination: destination }])
+    }
+
+    const interval = setInterval(() => {
+      getTenantCall()
+    }, 10000)
+
+    return () => clearInterval(interval);
+  }, [pendingCalls])
+
+  const renderFloors = () => {
+    const floors = []
+
+    for (let i = 20; i >= 1; i--) {
+      const tenantsOnFloor = pendingCalls.filter(call => call.currentFloor === i).length
+      
+      floors.push(
+        <div key={i} className={styles.floor}>
+          <div className={tenantsOnFloor ? styles.tenant : ''}>{`tenantsOnFloor: ${tenantsOnFloor}`}</div>
+          <div className={`${styles.floorNumber} ${currentFloor === i ? styles.activeFloor : ''}`}>Floor {i}</div>
+        </div>
+      )
+    }
+    return floors
+  }
 
   return (
     <div className={styles.elevatorContainer}>
-      <div className={styles.elevatorDisplay}>
-        Doors {doorsOpen ? 'Open' : 'Closed'}
-        <br />
-        Floor {currentFloor}
-        <br />
-        {moving ? 'Moving' : 'Stopped'}
-        <div className={styles.elevatorDirection}>
-          &uarr;
-          &darr;
+      <div className={styles.displayContainer}>
+        <div className={`${styles.elevatorDisplay} ${emergencyStop ? styles.emergencyStop : ''}`}>
+          Doors {doorsOpen ? 'Open' : 'Closed'}
+          <br />
+          Floor {currentFloor}
+          <br />
+          {moving ? 'Moving' : 'Stopped'}
+          <br />
+          {emergencyStop ? 'EMERGENCY, PLEASE REMAIN CALM' : ''}
+          <div className={styles.elevatorDirection}>
+            <span className={direction === Direction.UP ? styles.up : ''}>&uarr;</span>
+            <span className={direction === Direction.DOWN ? styles.down : ''}>&darr;</span>
+          </div>
         </div>
+        <button onClick={() => setEmergencyStop(true)} className={styles.emergencyStop}>Emergency Stop</button>
+        {pendingCalls.map((call) => {
+          return (<>
+            <br/>
+            currentFloor: {call.currentFloor}&nbsp;
+            dest: {call.destination}&nbsp;
+            direction: {call.direction} 
+          </>
+        )})}
       </div>
-      <div className={styles.elevator}></div>
+      <div className={styles.elevator}>
+        <span className={doorsOpen ? '' : styles.doorClosed}></span>
+        <span className={doorsOpen ? '' : styles.doorClosed}></span>
+      </div>
+      <div className={styles.floors}>{renderFloors()}</div>
     </div>
   )
 }
