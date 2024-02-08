@@ -1,0 +1,13 @@
+// In production code, create generic for a NumericRange
+export type PossibleFloors = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20
+
+export enum Direction {
+  UP = 'up',
+  DOWN = 'down'
+}
+
+export type Call = {
+  currentFloor: PossibleFloors,
+  direction: Direction,
+  destination: PossibleFloors
+}

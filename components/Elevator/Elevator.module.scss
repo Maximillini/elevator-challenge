@@ -14,21 +14,94 @@
   display: flex;
   flex: 0 1 25%;
   height: 30%;
-  margin: 0 10px;
+  margin-right: 10px;
   padding: 20px;
   align-items: center;
+  &.emergencyStop {
+    border: 1px solid $white;
+    margin: 0 10px 0 0;
+  }
 }
 
 .elevatorDirection {
   color: rgba(255, 255, 255, 0.04);
   display: flex;
   flex: 1 1 50%;
-  font-size: 5em;
+  font-size: 8em;
   place-content: center;
   text-align: center;
 }
 
+.displayContainer {
+  flex: 0 0 30%;
+}
+
+.up {
+  color: $green;
+}
+
+.down {
+  color: $red;
+}
+
 .elevator {
   border: 1px solid $white;
-  flex: 0 0 40%;
+  display: flex;
+  flex: 0 0 30%;
+  margin-right: 20px;
+}
+
+.doorClosed {
+  background: $white;
+  flex: 0 0 50%;
+  &:first-child {
+    border-right: 1px solid $black;
+  }
+}
+
+.floors {
+  border: 1px solid $white;
+  border-top: none;
+  display: flex;
+  flex: 1 1 10%;
+  flex-direction: column;
+}
+
+.floor {
+  align-items: center;
+  border-top: 1px solid $white;
+  display: flex;
+  height: 50px;
+  justify-content: space-evenly;
+}
+
+.activeFloor {
+  background: $green;
+  padding: 0 10px;
+}
+
+.tenant {
+  background: $red;
+}
+
+// .tenants {
+//   background-color: $red;
+//   border-bottom: 1px solid $white;
+//   border-radius: 50%;
+//   width: 20px;
+//   height: 20px;
+//   color: $white;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   margin: 5px;
+// }
+
+.emergencyStop {
+  background: $red;
+  border: 3px solid $white;
+  border-radius: 5px;
+  color: $white;
+  margin: 10px 0;
+  padding: 10px 20px;
 }
