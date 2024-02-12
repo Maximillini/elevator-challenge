@@ -13,13 +13,15 @@ export const Elevator = () => {
   const [emergencyStop, setEmergencyStop] = useState(false)
 
   useEffect(() => {
-    if (emergencyStop) {
-      return () => {}
-    }
-  
     const nextCall = pendingCalls[0]
   
-    if (!nextCall || moving) return
+    if (!nextCall || moving) {
+      setCurrentFloor(1)
+      setDoorsOpen(true)
+      setMoving(false)
+      setDirection(null)
+      return
+    }
   
     const direction = nextCall.currentFloor > currentFloor ? Direction.UP : Direction.DOWN;
   
@@ -27,6 +29,7 @@ export const Elevator = () => {
     setDirection(direction)
   
     const moveOneFloor = () => {
+      if (emergencyStop) return
       // Ensure the elevator is not already moving
       if (moving) return
     
@@ -37,14 +40,13 @@ export const Elevator = () => {
       setDirection(direction)
     
       // Move the elevator one floor at a time based on the direction
-      const interval = setInterval(() => {
+      setTimeout(() => {
         if (direction === Direction.UP && currentFloor < 20) {
           setCurrentFloor(prevFloor => prevFloor + 1 as PossibleFloors)
         } else if (direction === Direction.DOWN && currentFloor > 1) {
           setCurrentFloor(prevFloor => prevFloor - 1 as PossibleFloors)
         } else {
           // Stop the elevator when it reaches the destination floor
-          clearInterval(interval)
           setMoving(false)
           setDoorsOpen(true)
           return
@@ -54,7 +56,6 @@ export const Elevator = () => {
         if (reachedDestination) {
           // Remove the completed call and stop the elevator
           setPendingCalls(prevCalls => prevCalls.filter(c => c !== nextCall))
-          clearInterval(interval)
           setMoving(false)
           setDoorsOpen(true)
           return
@@ -87,11 +88,13 @@ export const Elevator = () => {
       const randomDirection = getTenantDirection(start, destination)
       
       // Prevent requesting elevator to the same floor
+      // In future iterations, make this impossible to achieve in getRandStartAndDestination() 
       if (start === destination) return
     
       if (pendingCalls.some(call => call.currentFloor === start && call.direction === randomDirection)) return
     
-      if (pendingCalls.length > 1) return
+      // Stop after one tenant just to test issues
+      if (pendingCalls.length > 10) return
       setPendingCalls(prevCalls => [...prevCalls, { currentFloor: start, direction: randomDirection, destination: destination }])
     }
 
@@ -99,9 +102,10 @@ export const Elevator = () => {
       getTenantCall()
     }, 10000)
 
-    return () => clearInterval(interval);
+    return () => clearInterval(interval)
   }, [pendingCalls])
 
+  // Move to separate component with floor number, and tenant on floor props
   const renderFloors = () => {
     const floors = []
 
@@ -134,7 +138,9 @@ export const Elevator = () => {
             <span className={direction === Direction.DOWN ? styles.down : ''}>&darr;</span>
           </div>
         </div>
+        {/* Make this a toggle */}
         <button onClick={() => setEmergencyStop(true)} className={styles.emergencyStop}>Emergency Stop</button>
+        {/* Move below to separate component */}
         {pendingCalls.map((call) => {
           return (<>
             <br/>
