@@ -1,11 +1,3 @@
-## Ludex Elevator Code Challenge
-
-Welcome! Please clone this repo and add your repo so that we can access it publicly. We have bootstrapped a Nextjs web application and included Typescript configuration. We will be reviewing your code together in the next step of the interview process.
-
-The goal of this challenge is to get a good understanding of your React, Typescript and CSS skills. You will be building a web application that represents an elevator moving up and down a residential building.
-
-You can use any CSS utility libraries for styling or any other packages, like Redux, for handling global state.
-
 The challenge is intentionally open-ended but the rules you must follow are below:
 
 - 20 floor building
